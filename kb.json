@@ -1,24 +1,118 @@
 {
   "kb": [
     {
+      "id": "pedido_seguimiento",
+      "title": "Seguimiento de pedido o reserva",
+      "keywords": ["dónde está mi pedido","seguimiento","tracking","localizar pedido","estado pedido","reserva"],
+      "intent": "pedido_estado",
+      "summary": "Cómo consultar el estado del pedido o la reserva siendo invitado o usuario registrado.",
+      "steps": [
+        "Si compraste como invitado: introduce el número de pedido y tu email para confirmarlo.",
+        "Si tienes cuenta: inicia sesión y consulta el estado desde tu área de usuario.",
+        "Si no ves actualización inmediata, espera unas horas y vuelve a comprobarlo."
+      ],
+      "url": "https://www.sprintersports.com/ayuda/seguimiento-pedido-reserva"
+    },
+    {
+      "id": "pedido_cancelar_modificar",
+      "title": "Cancelar o modificar un pedido",
+      "keywords": ["cancelar pedido","anular pedido","modificar pedido","parar pedido"],
+      "intent": "pedido_gestion",
+      "summary": "Qué se puede hacer tras comprar y cómo cancelar a tiempo.",
+      "steps": [
+        "Una vez completada la compra no es posible modificar artículos del pedido.",
+        "Puedes cancelar antes de que el pedido entre en preparación (botón 'Cancelación de pedido' en tu panel).",
+        "Si el botón aparece deshabilitado, el pedido ya está preparándose: espera a recibirlo y tramita la devolución.",
+        "El reembolso por cancelación se emite normalmente en 1 a 7 días."
+      ],
+      "url": "https://www.sprintersports.com/ayuda/compras/cancelar-modificar-pedido"
+    },
+    {
+      "id": "envio_cambio_direccion",
+      "title": "Cambiar la dirección de entrega",
+      "keywords": ["cambiar dirección","dirección entrega","modificar dirección","cambio envío"],
+      "intent": "envio",
+      "summary": "Cuándo y cómo solicitar un cambio de dirección de entrega.",
+      "steps": [
+        "Si el pedido aún lo permite, contacta con el equipo de soporte desde la página de ayuda.",
+        "Gestionaremos el cambio siempre que sea posible antes del envío."
+      ],
+      "url": "https://www.sprintersports.com/ayuda/cambiar-direccion-entrega"
+    },
+    {
+      "id": "recibo_compra",
+      "title": "Obtener el recibo de compra",
+      "keywords": ["recibo","factura","ticket","justificante"],
+      "intent": "pago",
+      "summary": "Dónde descargar el recibo o justificante de compra.",
+      "steps": [
+        "Accede a tu cuenta y entra en 'Mis compras' para descargar el recibo.",
+        "Para cambios/devoluciones en tienda física, puedes presentar el email de confirmación del pedido."
+      ],
+      "url": "https://www.sprintersports.com/ayuda/recibo-compra"
+    },
+    {
+      "id": "pedido_problemas",
+      "title": "Problemas con el pedido (daños, faltas, defectos…)",
+      "keywords": ["pedido dañado","embalaje roto","artículo defectuoso","falta artículo","pedido incorrecto","no llega email"],
+      "intent": "incidencia",
+      "summary": "Qué hacer ante daños, artículos defectuosos o errores en el envío/confirmación.",
+      "steps": [
+        "Paquete golpeado o manipulado: contacta en los primeros 7 días y conserva embalaje/etiqueta. Haz fotos para la mensajería.",
+        "Artículo defectuoso: acude a una tienda Sprinter (Península o Baleares) o contacta con soporte para tramitar garantía.",
+        "Faltan artículos o llegó otro distinto: contacta con soporte (plazo de reclamación: 7 días desde la entrega).",
+        "Sin email de confirmación: revisa 'Promociones' (Gmail) o contacta para localizar el pedido."
+      ],
+      "url": "https://www.sprintersports.com/ayuda/problemas-pedido"
+    },
+    {
+      "id": "comprar_online",
+      "title": "Cómo comprar online en Sprinter",
+      "keywords": ["cómo comprar","comprar online","guía de compra","métodos de pago"],
+      "intent": "compras_web",
+      "summary": "Pasos básicos de compra y métodos de pago disponibles.",
+      "steps": [
+        "Compra como invitado o como usuario registrado (recomendado unirte a Sprinter Club).",
+        "Geolocalízate para ver métodos de envío disponibles por artículo.",
+        "Añade productos a la cesta, elige modalidad de entrega por artículo y procede al pago.",
+        "Pagos admitidos: tarjeta, Bizum, PayPal, Google Pay, Apple Pay o pago aplazado (Klarna / Oney).",
+        "Tras tramitar la compra verás la confirmación y recibirás email con el número de pedido."
+      ],
+      "url": "https://www.sprintersports.com/ayuda/comprar-web-sprinter"
+    },
+    {
+      "id": "baja_comunicaciones",
+      "title": "Darse de baja de comunicaciones",
+      "keywords": ["baja newsletter","dejar de recibir emails","notificaciones","sprinter club"],
+      "intent": "cuenta",
+      "summary": "Opciones para dejar de recibir emails o notificaciones.",
+      "steps": [
+        "Emails: usa el enlace 'Darse de baja' del propio correo o desmarca la casilla en tu panel ('Suscripciones Sprinter').",
+        "APP: desactiva las notificaciones en Ajustes > Notificaciones de tu dispositivo.",
+        "Navegador: gestiona permisos de notificaciones en la configuración del navegador.",
+        "Si perteneces a Sprinter Club, seguirás recibiendo mensajes sobre puntos salvo que te des de baja de la cuenta."
+      ],
+      "url": "https://www.sprintersports.com/ayuda/baja-comunicaciones"
+    },
+    {
       "id": "devoluciones_plazo",
       "title": "Plazo para devoluciones",
       "keywords": ["devolución","devolver","plazo devolución","plazos","tiempo para devolver"],
       "intent": "devolucion",
-      "summary": "Información sobre el plazo estándar para devolver productos y condiciones generales.",
+      "summary": "Plazo estándar y condiciones generales para devolver productos.",
       "steps": [
         "Comprueba que el producto esté en buen estado y con etiquetas.",
         "Inicia la devolución desde tu cuenta o acudiendo a tienda (si aplica).",
-        "Guarda el justificante hasta el reembolso."
+        "Guarda el justificante hasta recibir el reembolso."
       ],
       "url": "https://www.sprintersports.com/ayuda/cambios-devoluciones"
     },
     {
       "id": "devoluciones_metodo",
       "title": "Cómo hacer una devolución",
-      "keywords": ["cómo devolver","hacer devolución","procesar devolución","etiqueta devolución"],
+      "keywords": ["cómo devolver","hacer devolución","procesar devolución","etiqueta devolución","devolver producto"],
       "intent": "devolucion",
-      "summary": "Pasos para tramitar una devolución (online o en tienda) y documentación necesaria.",
+      "summary": "Pasos para tramitar una devolución y documentación necesaria.",
       "steps": [
         "Accede a tu pedido desde tu cuenta.",
         "Selecciona los artículos a devolver y confirma el método.",
@@ -46,8 +140,8 @@
       "intent": "envio",
       "summary": "Tiempos orientativos de preparación y entrega por tipo de envío.",
       "steps": [
-        "El plazo depende de tu dirección y el tipo de envío seleccionado.",
-        "Consulta el plazo estimado en el checkout o en tu confirmación de pedido."
+        "El plazo depende de tu dirección y del método de envío seleccionado.",
+        "Consulta la fecha estimada en el checkout y en tu confirmación de pedido."
       ],
       "url": "https://www.sprintersports.com/ayuda/envio"
     },
@@ -64,35 +158,9 @@
       "url": "https://www.sprintersports.com/ayuda/envio"
     },
     {
-      "id": "pedido_estado",
-      "title": "Dónde está mi pedido (seguimiento)",
-      "keywords": ["dónde está mi pedido","seguimiento","tracking","localizar pedido","estado pedido"],
-      "intent": "pedido_estado",
-      "summary": "Cómo consultar el estado del pedido y hacer seguimiento.",
-      "steps": [
-        "Ten a mano tu email y número de pedido.",
-        "Revisa el enlace de seguimiento en tu correo o en tu cuenta.",
-        "Si no ves actualización, espera unas horas y vuelve a comprobarlo."
-      ],
-      "url": "https://www.sprintersports.com/ayuda/compras"
-    },
-    {
-      "id": "cancelacion_pedido",
-      "title": "Cancelar un pedido",
-      "keywords": ["cancelar pedido","anular pedido","parar pedido"],
-      "intent": "pedido_estado",
-      "summary": "Opciones de cancelación en ventana corta y alternativas si ya está en preparación.",
-      "steps": [
-        "Si el pedido ya está en preparación o envío, puede que no se pueda cancelar.",
-        "Como alternativa, gestiona una devolución una vez recibido.",
-        "Confirma primero el estado del pedido para ver si aún estás a tiempo."
-      ],
-      "url": "https://www.sprintersports.com/ayuda/compras"
-    },
-    {
       "id": "pagos_metodos",
       "title": "Métodos de pago",
-      "keywords": ["métodos de pago","formas de pago","tarjeta","paypal","financiación"],
+      "keywords": ["métodos de pago","formas de pago","tarjeta","paypal","financiación","bizum","apple pay","google pay"],
       "intent": "pago",
       "summary": "Formas de pago admitidas y verificación.",
       "steps": [
@@ -119,9 +187,9 @@
       "title": "Garantía y producto defectuoso",
       "keywords": ["garantía","defectuoso","avería","reclamación","incidencia producto"],
       "intent": "faq",
-      "summary": "Proceso de revisión, reparación o sustitución por defecto de fabricación.",
+      "summary": "Proceso de revisión/reparación/sustitución por defecto de fabricación.",
       "steps": [
-        "Haz fotos y describe el defecto con detalle.",
+        "Haz fotos y describe el defecto.",
         "Gestiona la solicitud desde tu pedido o en tienda con el ticket.",
         "Si afecta a la seguridad, deja de usar el producto y marca la incidencia como urgente."
       ],
