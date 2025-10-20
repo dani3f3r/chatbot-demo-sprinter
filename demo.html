@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="es">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Asistente Sprinter — Demo</title>
+  <style>
+    :root{
+      --bg:#f7f8fa; --card:#ffffff; --border:#e6e9ef; --text:#1f2430; --muted:#6b7280;
+      --brand:#00a884; --bot:#eef7ff; --you:#e8f6f1; --sys:#fff8e6; --chip:#f1f5f9;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0; background:var(--bg); color:var(--text);
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+      display:grid; place-items:center; min-height:100vh; padding:24px;
+    }
+    .card{
+      width:min(820px,95vw); background:var(--card); border:1px solid var(--border);
+      border-radius:16px; box-shadow:0 8px 28px rgba(30,41,59,.08); padding:16px 16px 18px;
+    }
+    header{display:flex;align-items:center;gap:12px;margin-bottom:8px}
+    .dot{width:10px;height:10px;border-radius:999px;background:var(--brand)}
+    h1{font-size:18px;margin:0}
+    .subtitle{margin:0;color:var(--muted);font-size:13px}
+    #log{
+      height:420px; overflow:auto; padding:12px; background:#fbfcfe;
+      border:1px solid var(--border); border-radius:12px;
+    }
+    .row{display:flex;gap:8px;margin-top:10px}
+    input,button{
+      border-radius:10px;border:1px solid var(--border);padding:10px 12px;background:#fff;color:var(--text)
+    }
+    input{flex:1}
+    button{cursor:pointer;transition:transform .02s ease-in}
+    button:active{transform:scale(.98)}
+    .primary{background:var(--brand);color:#fff;border-color:var(--brand)}
+    .ghost{background:#fff}
+    /* Bubble */
+    .bubble{
+      max-width:78%; margin:14px 0; padding:12px 12px 12px;
+      border-radius:14px; border:1px solid var(--border);
+      line-height:1.48; font-size:15px; position:relative;
+    }
+    .bubble.bot{background:var(--bot)}
+    .bubble.you{background:var(--you); margin-left:auto}
+    .bubble.sys{background:var(--sys); border-color:#f5e6b3}
+    /* Chip (etiqueta de rol) */
+    .chip{
+      display:inline-block; padding:3px 8px; font-size:11px; letter-spacing:.2px;
+      background:var(--chip); color:#0f172a; border:1px solid var(--border);
+      border-radius:999px; margin-bottom:6px; font-weight:600;
+    }
+    .chip.bot{background:#e6f0ff;border-color:#cfe2ff;color:#0f1d40}
+    .chip.you{background:#dff5ee;border-color:#c9efe6;color:#0d3b32}
+    .chip.sys{background:#fff0cc;border-color:#ffe3a6;color:#664c00}
+    /* Fuente */
+    .meta{color:var(--muted);font-size:12px;margin-top:6px}
+    .src a{color:#2563eb;text-decoration:none;word-break:break-all}
+    .phone-row{display:none;gap:8px;margin-top:8px}
+    ul{margin:8px 0 0 18px;padding:0}
+  </style>
+
+  <div class="card" role="application" aria-label="Asistente Sprinter">
+    <header>
+      <span class="dot" aria-hidden="true"></span>
+      <div>
+        <h1>Asistente Sprinter</h1>
+        <p class="subtitle">Resuelve incidencias y deriva a un agente solo cuando es necesario.</p>
+      </div>
+    </header>
+
+    <div id="log" aria-live="polite" aria-relevant="additions"></div>
+
+    <div class="row">
+      <input id="msg" placeholder="Escribe tu consulta… (p. ej., '¿plazo de devolución?')" />
+      <button id="send" class="primary">Enviar</button>
+      <button id="agent" class="ghost">Hablar con un agente</button>
+    </div>
+
+    <div class="phone-row" id="callRow">
+      <input id="phone" placeholder="Tu teléfono (e.g. +34600111222)" />
+      <button id="call" class="primary">Llamadme ahora</button>
+    </div>
+  </div>
+
+  <script>
+  /* ====== CONFIG ====== */
+  const CONFIG = {
+    RUNTIME_URL: "https://hook.eu1.make.com/rjgxul3uj32k1k32xqujft2nq3ysomas",
+    CALL_URL:   "https://YOUR_MAKE_WEBHOOK/sprinter/call_request",
+    DEBUG: true,
+  };
+  /* ==================== */
+
+  const sessionId = "demo-" + Math.random().toString(36).slice(2, 8);
+  const log = document.getElementById("log");
+  const msg = document.getElementById("msg");
+  const callRow = document.getElementById("callRow");
+
+  function escapeHtml(s){
+    return (s||"").replace(/[&<>"']/g,(m)=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[m]));
+  }
+
+  // Normaliza strings de URL: quita comillas sueltas '' o ""
+  function normalizeUrl(u){
+    if(!u) return "";
+    let s = String(u).trim();
+    s = s.replace(/^['"]+|['"]+$/g,""); // quita comillas de ambos lados
+    return s.trim();
+  }
+
+  function makeBubble(role, html, cls){
+    const wrap = document.createElement("div");
+    wrap.className = "bubble " + (cls||"bot");
+    const chip = document.createElement("div");
+    chip.className = "chip " + (cls||"bot");
+    chip.textContent = role;
+    const body = document.createElement("div");
+    body.innerHTML = html;
+    wrap.appendChild(chip);
+    wrap.appendChild(body);
+    log.appendChild(wrap);
+    log.scrollTop = log.scrollHeight;
+  }
+
+  function addSources(urlsOrString){
+    if (!urlsOrString) return;
+    let urls = Array.isArray(urlsOrString) ? urlsOrString : [urlsOrString];
+    urls = urls.map(normalizeUrl).filter(Boolean);
+    if (!urls.length) return;
+    const wrap = document.createElement("div");
+    wrap.className = "meta src";
+    wrap.innerHTML = "Fuentes: " + urls.map(u => `<a target="_blank" href="${u}">${u}</a>`).join(" · ");
+    log.appendChild(wrap);
+    log.scrollTop = log.scrollHeight;
+  }
+
+  /* ---------- FETCH con logs y tolerante a “ruido” ---------- */
+  async function apiFetch(url, payload){
+    const req = { method:"POST", headers:{ "Content-Type":"text/plain" }, body: JSON.stringify(payload) };
+    if (CONFIG.DEBUG){ console.groupCollapsed("[FETCH] →", url); console.log("Payload:", payload); }
+    const res = await fetch(url, req);
+    const status = res.status;
+    const raw = await res.text();
+    let data=null;
+    try { data = JSON.parse(raw); }
+    catch { const cut = raw.lastIndexOf("}"); if (cut>-1) data = JSON.parse(raw.slice(0,cut+1)); }
+    if (CONFIG.DEBUG){ console.log("Status:", status); console.log("Raw:", raw); console.log("Parsed:", data); console.groupEnd(); }
+    if (status<200||status>=300 || !data) throw new Error("Backend error");
+    return data;
+  }
+  /* --------------------------------------------------------- */
+
+  async function send(){
+    const text = msg.value.trim();
+    if (!text) return;
+    makeBubble("Tú", `<div>${escapeHtml(text)}</div>`, "you");
+    msg.value = "";
+    try{
+      const data = await apiFetch(CONFIG.RUNTIME_URL, { session_id: sessionId, message: text });
+      renderRuntimeResponse(data);
+    }catch(e){
+      if (CONFIG.DEBUG) console.error(e);
+      makeBubble("Sistema", `<div>No se pudo contactar con el backend.</div>`, "sys");
+    }
+  }
+
+  function renderRuntimeResponse(data){
+    // Contrato nuevo: intro + bullets (string con \n) + closing
+    if (data && (data.intro || data.bullets || data.closing)){
+      const intro = data.intro ? `<div>${escapeHtml(String(data.intro))}</div>` : '';
+      const items = typeof data.bullets === "string" ? data.bullets.split("\n").map(s=>s.trim()).filter(Boolean) : [];
+      const bullets = items.length ? `<ul>${items.map(b=>`<li>${escapeHtml(b)}</li>`).join("")}</ul>` : '';
+      const closing = data.closing ? `<div>${escapeHtml(String(data.closing))}</div>` : '';
+      makeBubble("Bot", `${intro}${bullets}${closing}`, "bot");
+    }else{
+      // Fallback contrato antiguo
+      const compact = data && data.answer ? String(data.answer) : "Sin respuesta";
+      const parts = compact.split(" • ").map(s=>s.trim()).filter(Boolean);
+      const html = parts.length ? `<ul>${parts.map(p=>`<li>${escapeHtml(p)}</li>`).join("")}</ul>` : escapeHtml(compact);
+      makeBubble("Bot", html, "bot");
+    }
+
+    const src = normalizeUrl(data?.source_url) || (Array.isArray(data?.sources) ? normalizeUrl(data.sources[0]) : "");
+    if (src) addSources(src);
+
+    if (data && data.handoff){
+      makeBubble("Sistema", `<div>Agente solicitado (${data.channel || "chat"}).</div>`, "sys");
+      if (data.channel === "voice") callRow.style.display = "flex";
+    }
+  }
+
+  async function callNow(){
+    const phone = document.getElementById("phone").value.trim();
+    if (!phone) return alert("Indica un teléfono válido.");
+    makeBubble("Sistema", `<div>Solicitando llamada a ${escapeHtml(phone)}…</div>`, "sys");
+    try{
+      const data = await apiFetch(CONFIG.CALL_URL, { session_id: sessionId, user_phone: phone, notes: "Click-to-call desde demo" });
+      if (data.ok) makeBubble("Sistema", `<div>Llamada en curso (ID ${escapeHtml(data.call_id||"")} ).</div>`, "sys");
+      else makeBubble("Sistema", `<div>No se pudo iniciar la llamada.</div>`, "sys");
+    }catch(e){
+      if (CONFIG.DEBUG) console.error(e);
+      makeBubble("Sistema", `<div>Fallo de red al solicitar la llamada.</div>`, "sys");
+    }
+  }
+
+  document.getElementById("send").onclick = send;
+  document.getElementById("agent").onclick = () => {
+    makeBubble("Sistema", `<div>Derivación a agente solicitada.</div>`, "sys");
+    apiFetch(CONFIG.RUNTIME_URL, { session_id: sessionId, message: "Quiero hablar con un agente" })
+      .then(d => { renderRuntimeResponse(d); if (d.channel === "voice") callRow.style.display = "flex"; })
+      .catch(e => { if (CONFIG.DEBUG) console.error(e); makeBubble("Sistema", `<div>No se pudo contactar con el backend.</div>`, "sys"); });
+  };
+  document.getElementById("call").onclick = callNow;
+  msg.addEventListener("keydown", e => { if (e.key === "Enter") send(); });
+
+  // Mensaje inicial
+  makeBubble("Bot", `<div>¡Hola! Soy tu asistente de Sprinter. Pregúntame sobre devoluciones, envíos, pedidos…</div>`, "bot");
+  </script>
+</html>
