@@ -13,7 +13,7 @@
 			clickToCallScript.defer = true;
 			document.head.appendChild(clickToCallScript);
 			const clickToCallWidget = document.createElement('click-to-call-widget');
-			const config = {"c2c_config":{"caller":"prueba","password":"prueba","callerPhone":"+34640674393","call":"+34636624849","dtmfKeypadEnabled":true,"screenSharingEnabled":false,"keepConnectionAfterCall":0},"c2c_serverConfig":{"domain":"rrfeecgrlkfj.sip1-region1.audiocodes.io","addresses":["wss://rrfeecgrlkfj.sip1-region1.audiocodes.io"]}};
+			const config = {"c2c_config":{"caller":"prueba","password":"prueba","callerPhone":"+34666666666","call":"+34722527259","dtmfKeypadEnabled":true,"screenSharingEnabled":false,"keepConnectionAfterCall":0},"c2c_serverConfig":{"domain":"rrfeecgrlkfj.sip1-region1.audiocodes.io","addresses":["wss://rrfeecgrlkfj.sip1-region1.audiocodes.io"]}};
 			// Handle the form validation here
 			const form = {"isValid":true};
 			clickToCallWidget.setAttribute('config', JSON.stringify(config));
