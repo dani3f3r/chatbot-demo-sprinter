@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="es">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Asistente Sprinter — Demo</title>
+  
+  <script src="./click-to-call-widget.js" defer></script>
+  
+  <style>
+    :root {
+      --bg: #f7f8fa;
+      --card: #fff;
+      --border: #e6e9ef;
+      --text: #1f2430;
+      --muted: #6b7280;
+      --brand: #00a884;
+      --bot: #eef7ff;
+      --you: #e8f6f1;
+      --sys: #fff8e6;
+      --sysborder: #f5e6b3;
+    }
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      display: grid;
+      place-items: center;
+      min-height: 100vh;
+      padding: 24px;
+    }
+    .card {
+      width: min(840px, 95vw);
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      box-shadow: 0 8px 28px rgba(30, 41, 59, 0.08);
+      padding: 16px 16px 18px;
+    }
+    header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 8px;
+    }
+    .dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 999px;
+      background: var(--brand);
+    }
+    h1 {
+      font-size: 18px;
+      margin: 0;
+    }
+    .subtitle {
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    /* --- Contenedores de Chat y Llamada --- */
+    #chatContainer {
+      display: block;
+    }
+    #callContainer {
+      display: none;
+      padding: 20px 10px 10px 10px;
+      border: 1px dashed var(--border);
+      border-radius: 12px;
+      text-align: center;
+      min-height: 300px;
+      display: none;
+      flex-direction: column;
+      justify-content: center;
+      position: relative;
+    }
+    #closeCall {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 500;
+      border-radius: 6px;
+      padding: 4px 8px;
+      cursor: pointer;
+    }
+    #closeCall:hover {
+      background: var(--border);
+    }
+    /* -------------------------------------- */
+
+    #log {
+      height: 460px;
+      overflow: auto;
+      padding: 12px;
+      background: #fbfcfe;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+    }
+    .row {
+      display: flex;
+      gap: 8px;
+      margin-top: 10px;
+    }
+    input,
+    button {
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      padding: 10px 12px;
+      background: #fff;
+      color: var(--text);
+    }
+    input {
+      flex: 1;
+    }
+    button {
+      cursor: pointer;
+      transition: transform 0.02s ease-in;
+    }
+    button:active {
+      transform: scale(0.98);
+    }
+    .primary {
+      background: var(--brand);
+      color: #fff;
+      border-color: var(--brand);
+    }
+    .ghost {
+      background: #fff;
+    }
+    .bubble {
+      max-width: 78%;
+      margin: 10px 0;
+      padding: 12px 14px;
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      line-height: 1.5;
+      font-size: 15px;
+    }
+    .bot {
+      background: var(--bot);
+    }
+    .you {
+      background: var(--you);
+      margin-left: auto;
+    }
+    .sys {
+      background: var(--sys);
+      border-color: var(--sysborder);
+    }
+    .tag {
+      display: inline-block;
+      font-size: 12px;
+      color: var(--muted);
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 3px 8px;
+      margin-bottom: 8px;
+    }
+    .sep {
+      border: 0;
+      border-top: 1px solid var(--border);
+      margin: 10px 0 6px;
+    }
+    .meta {
+      color: var(--muted);
+      font-size: 12px;
+      margin-top: 4px;
+    }
+    .src a {
+      color: #2563eb;
+      text-decoration: none;
+      word-break: break-all;
+    }
+  </style>
+
+  <div class="card" role="application" aria-label="Asistente Sprinter">
+    <header>
+      <span class="dot" aria-hidden="true"></span>
+      <div>
+        <h1>Sprint-IA</h1>
+        <p class="subtitle">
+          Resuelve las incidencias de los usuarios de Sprinter.
+        </p>
+      </div>
+    </header>
+
+    <div id="chatContainer">
+      <div id="log" aria-live="polite" aria-relevant="additions"></div>
+      <div class="row">
+        <input
+          id="msg"
+          placeholder="Escribe tu consulta… (p. ej., '¿plazo de devolución?')"
+        />
+        <button id="send" class="primary">Enviar</button>
+        <button id="agent" class="ghost">Hablar con un agente</button>
+      </div>
+    </div>
+
+    <div id="callContainer">
+      <button id="closeCall">Volver al chat</button>
+      </div>
+  </div>
+
+  <script>
+    /* ====== CONFIG CHATBOT ====== */
+    const CONFIG = {
+      RUNTIME_URL: "https://hook.eu1.make.com/rjgxul3uj32k1k32xqujft2nq3ysomas",
+      DEBUG: false,
+    };
+    /* ============================ */
+
+    // Elementos del DOM
+    const log = document.getElementById("log");
+    const msg = document.getElementById("msg");
+    const btnAgent = document.getElementById("agent");
+    const chatContainer = document.getElementById("chatContainer");
+    const callContainer = document.getElementById("callContainer");
+    const closeCall = document.getElementById("closeCall");
+
+    const sessionId = "demo-" + Math.random().toString(36).slice(2, 8);
+
+    /* --- Funciones del Chatbot --- */
+    function addBubble(html, cls = "bot") {
+      const wrap = document.createElement("div");
+      wrap.className = "bubble " + cls;
+      wrap.innerHTML = html;
+      log.appendChild(wrap);
+      log.scrollTop = log.scrollHeight;
+    }
+    function addLabeledBubble(label, bodyHtml, cls = "bot") {
+      addBubble(
+        `<span class="tag">${label}</span><div>${bodyHtml}</div>`,
+        cls
+      );
+    }
+    function addSources(url) {
+      const cleaned = (url || "").trim();
+      if (!cleaned || cleaned === "''" || cleaned === '""') return;
+      try {
+        const u = new URL(cleaned);
+        const wrap = document.createElement("div");
+        wrap.className = "meta src";
+        wrap.innerHTML = `Fuentes: <a target="_blank" href="${u.href}">${u.href}</a>`;
+        log.appendChild(wrap);
+        log.scrollTop = log.scrollHeight;
+      } catch {
+        /* ignore invalid URL */
+      }
+    }
+    function escapeHtml(s) {
+      return (s || "").replace(/[&<>"']/g, (m) => ({
+          "&": "&amp;",
+          "<": "&lt;",
+          ">": "&gt;",
+          '"': "&quot;",
+          "'": "&#39;",
+        }[m])
+      );
+    }
+    async function apiFetch(url, payload) {
+      const res = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const raw = await res.text();
+      if (CONFIG.DEBUG) {
+        console.log("[RUNTIME raw]", raw);
+      }
+      let data;
+      try {
+        data = JSON.parse(raw);
+      } catch (e) {
+        const cut = raw.lastIndexOf("}");
+        if (cut > -1) data = JSON.parse(raw.slice(0, cut + 1));
+        else throw new Error("Backend error");
+      }
+      if (!res.ok) throw new Error("Backend error");
+      return data;
+    }
+    function normalizeBullets(bullets) {
+      if (!bullets) return [];
+      if (Array.isArray(bullets))
+        return bullets.filter(Boolean).map((s) => String(s).trim()).filter(Boolean);
+      return String(bullets).split(/\r?\n/).map((s) => s.trim()).filter(Boolean);
+    }
+    function renderRuntimeResponse(data) {
+      const intro = (data && data.intro) ? String(data.intro) : "";
+      const bullets = normalizeBullets(data && data.bullets);
+      const closing = (data && data.closing) ? String(data.closing) : "";
+
+      let html = "";
+      if (intro) html += `<p style="margin:0 0 6px 0">${escapeHtml(intro)}</p>`;
+      if (bullets.length) {
+        html += `<ul style="margin:0 0 6px 16px; padding:0;">
+          ${bullets.map((b) => `<li>${escapeHtml(b)}</li>`).join("")}
+        </ul>`;
+      }
+      if (closing) {
+        html += `<hr class="sep"><p style="margin:0">${escapeHtml(closing)}</p>`;
+      }
+      if (!html) html = "<em>Sin respuesta</em>";
+
+      addLabeledBubble("Bot", html, "bot");
+      addSources(data && data.source_url);
+
+      if (data && data.handoff) {
+        showAgentCall();
+      }
+    }
+    async function send() {
+      const text = msg.value.trim();
+      if (!text) return;
+      addLabeledBubble("Tú", escapeHtml(text), "you");
+      msg.value = "";
+
+      try {
+        const data = await apiFetch(CONFIG.RUNTIME_URL, {
+          session_id: sessionId,
+          message: text,
+        });
+        renderRuntimeResponse(data);
+      } catch (e) {
+        addLabeledBubble(
+          "Sistema",
+          "No se pudo contactar con el backend.",
+          "sys"
+        );
+      }
+    }
+
+    /* --- LÓGICA DE LA LLAMADA WebRTC --- */
+
+    // Bandera para asegurar que solo intentamos el auto-dial una vez.
+    let autoDialAttempted = false;
+
+    function showAgentCall() {
+      addLabeledBubble(
+        "Sistema",
+        "De acuerdo. Te estoy transfiriendo a un agente. Por favor, espere.",
+        "sys"
+      );
+      chatContainer.style.display = "none";
+      callContainer.style.display = "flex";
+      
+      // Inicia la llamada automáticamente al mostrar el widget
+      if (!autoDialAttempted) {
+          autoStartCall(); 
+      }
+    }
+
+    btnAgent.addEventListener("click", showAgentCall);
+
+    closeCall.addEventListener("click", () => {
+      // Aquí podrías añadir widget.hangup() para colgar la llamada si está activa
+      chatContainer.style.display = "block";
+      callContainer.style.display = "none";
+      // Reiniciamos la bandera si volvemos al chat
+      autoDialAttempted = false; 
+    });
+
+    function autoStartCall() {
+        autoDialAttempted = true;
+        const widget = document.querySelector('click-to-call-widget');
+        
+        // Usamos un solo setTimeout si el widget no está listo inmediatamente (evita el bucle)
+        if (!widget || typeof widget.call !== 'function') {
+            setTimeout(() => {
+                const finalWidget = document.querySelector('click-to-call-widget');
+                if (finalWidget && typeof finalWidget.call === 'function') {
+                    // Llamada al método call() del widget
+                     finalWidget.call();
+                     console.log("WebRTC: Llamada iniciada tras reintento de 500ms.");
+                } else {
+                     console.error("WebRTC: El widget no se cargó correctamente después de 500ms. O el registro SIP falló. Intente hacer clic en el botón de llamar.");
+                }
+            }, 500);
+            return;
+        }
+        
+        try {
+            // Inicia la llamada inmediatamente si ya está listo.
+            widget.call(); 
+            console.log("WebRTC: Llamada iniciada inmediatamente.");
+        } catch (e) {
+            console.error("WebRTC: Error al iniciar la llamada automáticamente.", e);
+        }
+    }
+
+    function initWebRTCWidget() {
+      if (
+        !navigator.mediaDevices ||
+        !navigator.mediaDevices.getUserMedia ||
+        !navigator.mediaDevices.enumerateDevices
+      ) {
+        console.error("WebRTC no soportado en este navegador.");
+        return;
+      }
+
+      /* ====== ❗️ CONFIGURACIÓN DE AUDIOCodes CON CREDENCIALES ❗️ ====== */
+      const WEBRTC_CONFIG = {
+        // ❗️ Usuario SIP (nuevo valor)
+        USERNAME: "prueba", 
+        
+        // ❗️ Contraseña (nuevo valor)
+        PASSWORD: "prueba", 
+
+        // Número de destino
+        CALL_TO: "+34987626122",
+
+        // Dominio y dirección WSS
+        DOMAIN: "rrfeecgrlkfj.sip1-region1.audiocodes.io",
+        ADDRESS: "wss://rrfeecgrlkfj.sip1-region1.audiocodes.io",
+      };
+      /* ==================================== */
+      
+      const clickToCallWidget = document.createElement("click-to-call-widget");
+
+      const config = {
+        c2c_config: {
+          caller: WEBRTC_CONFIG.USERNAME,
+          password: WEBRTC_CONFIG.PASSWORD,
+          callerPhone: "+34666666666", 
+          call: WEBRTC_CONFIG.CALL_TO,
+          dtmfKeypadEnabled: true,
+          screenSharingEnabled: false,
+          keepConnectionAfterCall: 0,
+          // ❗️ CLAVE: Habilita el registro con las credenciales USERNAME/PASSWORD
+          register: true, 
+        },
+        c2c_serverConfig: {
+          domain: WEBRTC_CONFIG.DOMAIN,
+          addresses: [WEBRTC_CONFIG.ADDRESS],
+          // Aseguramos que NO haya authURL aquí
+        },
+      };
+      const form = { isValid: true };
+
+      clickToCallWidget.setAttribute("config", JSON.stringify(config));
+      clickToCallWidget.setAttribute("form", JSON.stringify(form));
+
+      callContainer.appendChild(clickToCallWidget);
+    }
+    /* ---------------------------------- */
+
+    /* --- INICIALIZACIÓN --- */
+    document.getElementById("send").onclick = send;
+    msg.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") send();
+    });
+
+    addLabeledBubble(
+      "Bot",
+      "<p style='margin:0'>¡Hola! Soy tu asistente de Sprinter. Pregúntame sobre devoluciones, envíos, pedidos…</p>",
+      "bot"
+    );
+
+    // Inicializar el widget WebRTC al cargar la página
+    initWebRTCWidget();
+  </script>
+</html>
